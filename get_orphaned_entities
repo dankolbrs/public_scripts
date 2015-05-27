@@ -1,0 +1,131 @@
+#! /usr/bin/python
+import argparse, requests, json, time
+
+'''
+Quick and dirty script to grab orphaned monitoring entities from Rackspace API
+
+May need to do a pip install of requests and/or argparse. Ensure it is version 2.6 or less
+`pip install requests==2.6.0`
+`pip install argparse`
+
+Sorts by most recent updated_at, as this may provide the best clue for most recent server deletion
+
+Requires a DDI, and token
+
+Usage: get_orphaned_entities -d <DDI> -t <TOKEN>
+
+Example output: 
+./get_orphaned_entities -d <DDI> -t <TOKEN> 
+Total of 15 orphaned entities
+--------------------------------------
+Id:  <ENTITY ID>
+Label:  <LABEL> 
+Created:  2015-01-29 17:12:24
+Updated:  2015-01-29 17:12:24
+URI:  https://ord.servers.api.rackspacecloud.com/<DDI>/servers/<AGENT_ID>
+Agent_id: <AGENT_ID> 
+--------------------------------------
+Id:  <ENTITY_ID>
+Label:  <LABEL>
+Created:  2013-09-18 08:30:46
+Updated:  2014-09-16 06:21:12
+URI:  https://dfw.servers.api.rackspacecloud.com/<DDI>/servers/<AGENT_ID>
+Agent_id:  <AGENT_ID>
+--------------------------------------
+...
+'''
+
+
+#Monitoring api URL
+monit_url = "https://monitoring.api.rackspacecloud.com/v1.0/{DDI}/entities"
+#DC list for hackish later
+dcs = ['dfw', 'iad', 'ord', 'hkg', 'syd', 'lon']
+
+#get the args, really didn't need to be in a function
+def arg_parsing():
+	parser = argparse.ArgumentParser(description="Get orphaned Monitoring entities")
+	parser.add_argument("-d",
+						"--ddi",
+						type=int,
+						dest="ddi",
+						help="Account DDI",
+						required=True)
+	parser.add_argument("-t",
+						"--token",
+						dest="token",
+						help="validated token",
+						required=True)
+	return parser.parse_args()
+
+args = arg_parsing()
+
+#build the headers to hit the APIs
+headers = {
+	"Content-Type" : "application/json",
+	"Request-Type" : "application/json",
+	"X-Auth-Token" : args.token
+}
+
+#list of monitoring entities returned via API
+monit_entities = requests.get(monit_url.format(DDI=args.ddi),
+							headers=headers)
+
+#servers API endpoints
+serversv1 = "https://servers.api.rackspacecloud.com/v1.0/{DDI}/servers/{ID}"
+serversv2 = "https://{DC}.servers.api.rackspacecloud.com/v2/{DDI}/servers/{ID}"
+#to hold our orphans
+orphans = []
+#loop through all the entities returned from the monitoring API
+for entity in monit_entities.json()['values']:
+	orphan = False
+	for DC in dcs:
+		if DC in entity["uri"]:
+			#FG
+			#for all the returned entities, try to hit the server they're for
+			response = requests.get(serversv2.format(DDI=args.ddi,
+													DC=DC,
+													ID=entity["agent_id"]),
+									headers=headers)
+			#if it doesn't return a 200, then it's orphaned
+			if response.status_code != 200:
+				orphan = True
+		elif "v1.0" in entity["uri"]:
+			#same as above but for FG
+			response = requests.get(serversv1.format(DDI=args.ddi,
+													ID=entity["agent_id"]),
+									headers=headers)
+			#if it doesn't return a 200, then it's orphaned
+			if response.status_code != 200:
+				orphan = True
+	if orphan:
+		#add this orphan to the list
+		orphans.append(entity["id"])
+
+orphan_deets = []
+#got a list of entities and orphans, now grab some values from them
+#not the most efficient method, but good enough
+for entity in monit_entities.json()['values']:
+	if entity["id"] in orphans:
+		build_out = {
+		"entity" : {
+			"Id" : entity["id"],
+			"Label" : entity["label"],
+			"Created" : entity["created_at"],
+			"Updated" : entity["updated_at"],
+			"URI" : entity["uri"],
+			"Agent_id" : entity["agent_id"]
+			}
+		}
+		orphan_deets.append(build_out)
+
+print "Total of %i orphaned entities" %len(orphans)
+for x in sorted(orphan_deets, reverse=True, key=lambda entity: int(entity["entity"]['Updated'])):
+	print "--------------------------------------"
+	print "Id: ", x["entity"]["Id"]
+	print "Label: ", x["entity"]["Label"]
+	#Get rid of the microseconds, no one cares
+	print "Created: ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(x["entity"]["Created"] / 1000)))
+	print "Updated: ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(x["entity"]["Updated"] / 1000)))
+	print "URI: ", x["entity"]["URI"]
+	print "Agent_id: ", x["entity"]["Agent_id"]
+print "--------------------------------------"
