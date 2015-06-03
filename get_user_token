@@ -1,0 +1,83 @@
+#! /bin/bash
+
+API_KEY=''
+USERNAME=''
+DDI=''
+ENDPOINT="https://identity.api.rackspacecloud.com/v2.0/tokens"
+DEBUG=false
+print_usage()
+{
+	echo\
+	"Usage: [-hvk] -u <USERNAME> -d <DDI> -a <API_KEY>
+	  Retrieve authentication token given username, ddi, and api key
+		-h	display this help and exit
+		-u	username
+		-d	ddi of user
+		-a	users API key --NOT token
+		-v	verbositize
+		-e	specify endpoint"
+}
+
+if [[ -z $(which jq) ]]; then
+	echo "Requires jq -- run \"brew install jq\""
+	if [[ -z $(which brew) ]]; then
+		echo "Actually, you should get brew. see http://brew.sh for details"
+	fi
+fi
+
+if [[ $# == 0 ]]; then
+	print_usage >&2
+	exit 1
+fi
+
+while getopts "u:a:d:e:skhv" opt; do
+	case $opt in
+		a)
+			API_KEY=$OPTARG
+			;;
+		u)
+			USERNAME=$OPTARG
+			;;
+		d)
+			DDI=$OPTARG
+			;;
+		s)
+			ENDPOINT="https://identity.api.rackspacecloud.com/v2.0/tokens"
+			;;
+		k)
+			ENDPOINT="https://lon.identity.api.rackspacecloud.com/v2.0/tokens"
+			;;
+		e)
+			ENDPOINT=$OPTARG
+			;;
+		v)
+			DEBUG=true
+			;;
+		h)
+			print_usage >&2
+			exit 1
+			;;
+		\?)
+			exit 1
+			;;
+		:)
+			exit 1
+			;;
+		esac
+	done
+
+dataString="{\"auth\": { \"RAX-KSKEY:apiKeyCredentials\": { \"username\": \"$USERNAME\",\
+	\"apiKey\": \"$API_KEY\"},\"tenantId\": \"$DDI\"}}"
+
+if $DEBUG; then
+	echo "-----POST Data------"
+	echo "$dataString"
+	echo "-----CURL------"
+	echo "curl -s $ENDPOINT -X POST -d $dataString -H \"Content-Type: application/json\" | jq .access.token.id"
+	echo "-----FULL OUTPUT------"
+	curl -vks "$ENDPOINT" -X POST -d "$dataString" -H "Content-Type: application/json"\
+ 	| jq .
+else
+	curl -s "$ENDPOINT" -X POST -d "$dataString" -H "Content-Type: application/json"\
+	| jq .access.token.id | sed 's/\"//g'
+fi
