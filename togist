@@ -70,9 +70,14 @@ def main():
 	#actual post request to github
 	r = requests.post(endpoint + "/gists", headers=header, data=json.dumps(post_data))
 	
-	#currently, just assumes successful
-	#print the URL of the newly created gist
+	
+	#grab the URL of the newly created gist
 	gist_url = r.json()['html_url']
+
+	#very little error checking, just checking if it was created
+	if r.status_code !=  201:
+		sys.stderr.write("Error! Received %i" % r.status_code)
+		exit(2)
 	print "Gist at: %s" % gist_url
 
 if __name__ == "__main__":
