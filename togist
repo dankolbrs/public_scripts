@@ -7,7 +7,8 @@ def find_config():
 	'''Find the .togistrc, in case using standard ecryptfs'''
 	cur_user = os.environ.get("USER")
 	user_home = os.environ.get("HOME")
-
+	
+	#find rc file with config options
 	if os.path.isfile(user_home + "/.togistrc"):
 		return user_home + "/.togistrc"
 	elif os.path.isfile(user_home + "/Private/.togistrc"):
