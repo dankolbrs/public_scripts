@@ -32,8 +32,12 @@ def main():
 	---
 	   oauth: <APPLICATION_KEY>
 	   user: <GITHUB_USERNAME>
-	   endpoint: <GITHUB_API_ENDPOINT (can use enterprise)
+	   endpoint: <GITHUB_API_ENDPOINT>
 	...
+
+	Notes:
+		endpoint can be a github enterprise endpoint
+		oauth is a an application token created through Settings >> Applications >> Personal access tokens
 	'''
 
 	#find and read the .togistrc yaml file
