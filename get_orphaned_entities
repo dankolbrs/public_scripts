@@ -14,16 +14,16 @@ Requires a DDI, and token
 
 Usage: get_orphaned_entities -d <DDI> -t <TOKEN>
 
-Example output: 
-./get_orphaned_entities -d <DDI> -t <TOKEN> 
+Example output:
+./get_orphaned_entities -d <DDI> -t <TOKEN>
 Total of 15 orphaned entities
 --------------------------------------
 Id:  <ENTITY ID>
-Label:  <LABEL> 
+Label:  <LABEL>
 Created:  2015-01-29 17:12:24
 Updated:  2015-01-29 17:12:24
 URI:  https://ord.servers.api.rackspacecloud.com/<DDI>/servers/<AGENT_ID>
-Agent_id: <AGENT_ID> 
+Agent_id: <AGENT_ID>
 --------------------------------------
 Id:  <ENTITY_ID>
 Label:  <LABEL>
@@ -45,16 +45,16 @@ dcs = ['dfw', 'iad', 'ord', 'hkg', 'syd', 'lon']
 def arg_parsing():
 	parser = argparse.ArgumentParser(description="Get orphaned Monitoring entities")
 	parser.add_argument("-d",
-						"--ddi",
-						type=int,
-						dest="ddi",
-						help="Account DDI",
-						required=True)
+					"--ddi",
+					type=int,
+					dest="ddi",
+					help="Account DDI",
+					required=True)
 	parser.add_argument("-t",
-						"--token",
-						dest="token",
-						help="validated token",
-						required=True)
+					"--token",
+					dest="token",
+					help="validated token",
+					required=True)
 	return parser.parse_args()
 
 args = arg_parsing()
@@ -83,17 +83,17 @@ for entity in monit_entities.json()['values']:
 			#FG
 			#for all the returned entities, try to hit the server they're for
 			response = requests.get(serversv2.format(DDI=args.ddi,
-													DC=DC,
-													ID=entity["agent_id"]),
-									headers=headers)
+							DC=DC,
+							ID=entity["agent_id"]),
+							headers=headers)
 			#if it doesn't return a 200, then it's orphaned
 			if response.status_code != 200:
 				orphan = True
 		elif "v1.0" in entity["uri"]:
 			#same as above but for FG
 			response = requests.get(serversv1.format(DDI=args.ddi,
-													ID=entity["agent_id"]),
-									headers=headers)
+							ID=entity["agent_id"]),
+							headers=headers)
 			#if it doesn't return a 200, then it's orphaned
 			if response.status_code != 200:
 				orphan = True
