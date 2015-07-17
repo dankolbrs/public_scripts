@@ -1,0 +1,74 @@
+#! /usr/bin/python
+
+import sys, json, requests, os, yaml
+
+
+def find_config():
+	'''Find the .togistrc, in case using standard ecryptfs'''
+	cur_user = os.environ.get("USER")
+	user_home = os.environ.get("HOME")
+
+	if os.path.isfile(user_home + "/.togistrc"):
+		return user_home + "/.togistrc"
+	elif os.path.isfile(user_home + "/Private/.togistrc"):
+		return user_home + "/Private/.togistrc"
+	else:
+		sys.stderr.write("Cannot find .togistrc\n"+
+				"Please create in\n$HOME/.togistrc\n"+
+				"Or\n$HOME/Private/.togistrc\n")
+		exit(1)
+	
+def main():
+	'''
+	Python implementation to allow piping straight to Github gist	
+
+	usage: $ cat somefile.txt | togist
+	Gist at: https://github.com/gist/<GIST_ID>
+
+	Requires an .togistrc file in either $HOME/.togistrc or $HOME/Private/.togistrc
+	In the format of:
+
+	---
+	   oauth: <APPLICATION_KEY>
+	   user: <GITHUB_USERNAME>
+	   endpoint: <GITHUB_API_ENDPOINT (can use enterprise)
+	...
+	'''
+
+	#find and read the .togistrc yaml file
+	config = yaml.safe_load(open(find_config()).read())
+	
+	#load up the configs
+	user = config['user']
+	token = config['oauth']
+	endpoint = config['endpoint']	
+	
+	#header requires the application token
+	header = {
+		"Authorization" : "token " + token	
+	}
+	
+	#the magic in the pipe
+	data = sys.stdin.read().strip()
+	
+	#data post data for the send to create a gist
+	post_data = {
+		"description" : "gist of output",
+		"public" : "False",
+		"files" : {
+			"temp_file.txt": {
+				"content" : data
+			}
+		}
+	}
+
+	#actual post request to github
+	r = requests.post(endpoint + "/gists", headers=header, data=json.dumps(post_data))
+	
+	#currently, just assumes successful
+	#print the URL of the newly created gist
+	gist_url = r.json()['html_url']
+	print "Gist at: %s" % gist_url
+
+if __name__ == "__main__":
+	main()
