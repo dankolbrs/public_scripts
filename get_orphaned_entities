@@ -124,8 +124,10 @@ for x in sorted(orphan_deets, reverse=True, key=lambda entity: int(entity["entit
 	print "Id: ", x["entity"]["Id"]
 	print "Label: ", x["entity"]["Label"]
 	#Get rid of the microseconds, no one cares
-	print "Created: ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(x["entity"]["Created"] / 1000)))
-	print "Updated: ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(x["entity"]["Updated"] / 1000)))
+	print "Created: ", time.strftime('%Y-%m-%d %H:%M:%S',
+				time.localtime(int(x["entity"]["Created"] / 1000)))
+	print "Updated: ", time.strftime('%Y-%m-%d %H:%M:%S',
+				time.localtime(int(x["entity"]["Updated"] / 1000)))
 	print "URI: ", x["entity"]["URI"]
 	print "Agent_id: ", x["entity"]["Agent_id"]
 print "--------------------------------------"
