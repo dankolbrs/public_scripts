@@ -50,7 +50,8 @@ def main():
 	
 	#header requires the application token
 	header = {
-		"Authorization" : "token " + token	
+		"Authorization" : "token " + token,
+		"Accpet" : "application/vnd.github.v3+json"
 	}
 	
 	#the magic in the pipe
@@ -58,19 +59,17 @@ def main():
 	
 	#data post data for the send to create a gist
 	post_data = {
-		"description" : "gist of output",
-		"public" : "False",
+		"description" : "gist of outputs",
+		"public" : "false",
 		"files" : {
 			"temp_file.txt": {
-				"content" : data
+				"content" : str(data)
 			}
 		}
 	}
 
 	#actual post request to github
 	r = requests.post(endpoint + "/gists", headers=header, data=json.dumps(post_data))
-	
-	
 	#grab the URL of the newly created gist
 	gist_url = r.json()['html_url']
 
