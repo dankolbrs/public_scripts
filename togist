@@ -51,7 +51,7 @@ def main():
 	#header requires the application token
 	header = {
 		"Authorization" : "token " + token,
-		"Accpet" : "application/vnd.github.v3+json"
+		"Accept" : "application/vnd.github.v3+json"
 	}
 	
 	#the magic in the pipe
