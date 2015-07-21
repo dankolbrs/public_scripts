@@ -59,7 +59,7 @@ def main():
 	
 	#data post data for the send to create a gist
 	post_data = {
-		"description" : "gist of outputs",
+		"description" : "gist of output",
 		"public" : "false",
 		"files" : {
 			"temp_file.txt": {
