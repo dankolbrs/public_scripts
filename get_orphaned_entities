@@ -97,6 +97,9 @@ for entity in monit_entities.json()['values']:
 			#if it doesn't return a 200, then it's orphaned
 			if response.status_code != 200:
 				orphan = True
+		if "database" in entity["uri"]:
+			#get rid of it if it's a database
+			orphan = False
 	if orphan:
 		#add this orphan to the list
 		orphans.append(entity["id"])
