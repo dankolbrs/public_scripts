@@ -46,7 +46,7 @@ fi
 ORIG=${1}
 OUTPUT=${2}
 OSIC_TEMPEST="https://raw.githubusercontent.com/osic/qe-jenkins-baremetal/master/jenkins/tempest.conf"
-wget ${OSIC_TEMPEST} -O tempest.conf.from_git
+wget --quiet ${OSIC_TEMPEST} -O tempest.conf.from_git
 keys="admin_password image_ref image_ref_alt uri uri_v3 public_network_id"
 for key in $keys
 	do
@@ -64,3 +64,4 @@ if [[ ${3} == "-a" || ${3} == "--aio" ]]
 fi
 
 mv tempest.conf.from_git ${OUTPUT}
+echo "Tempest configuration available as ${OUTPUT}"
