@@ -33,9 +33,12 @@ if [[ ${1} == "--help" || ${1} == "-h" ]]
 fi
 
 # just in case we're going to overwrite existing configuration
-if [[ -f etc/tempest.conf ]]
+if [[ -d etc ]]
 	then
-	mv etc/tempest.conf{,.$(date +%s)}
+	if [[ -f etc/tempest.conf ]]
+		then
+		mv etc/tempest.conf{,.$(date +%s)}
+	fi
 fi
 if [[ -f tempest.conf ]]
 	then
